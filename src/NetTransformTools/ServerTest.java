@@ -11,9 +11,20 @@ public class ServerTest {
 
         byte[] buffer = new byte[1024 * 50];
         BufferedInputStream bis = new BufferedInputStream(sock.getInputStream());
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("tempFile"));
 
-        int len = 0;
+
+        DataInputStream inputStream = new DataInputStream(sock.getInputStream());
+        String fileName = inputStream.readUTF();
+
+        File dic = new File(".\\Cache");
+        if (!dic.exists()){
+            dic.mkdir();
+        }
+        File file = new File(dic.getAbsolutePath() + File.separatorChar + fileName);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        BufferedOutputStream bos = new BufferedOutputStream(fileOutputStream);
+
+        int len;
         while ((len = bis.read(buffer)) > 0) {
             bos.write(buffer, 0, len);
             System.out.println("#");

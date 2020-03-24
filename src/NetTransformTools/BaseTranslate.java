@@ -1,7 +1,10 @@
 package NetTransformTools;
 
+import java.io.File;
+
 public class BaseTranslate {
     public static void main(String args[]) {
-        System.out.println("hello, this is my baseTranslateTools");
+
+        File myFile = new File("D:\\High Energy Gas Fracturing Test.pdf");
     }
 }

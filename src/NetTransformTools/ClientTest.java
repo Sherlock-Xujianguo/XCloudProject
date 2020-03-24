@@ -5,17 +5,21 @@ import java.net.Socket;
 
 public class ClientTest {
     public static void main(String args[]) throws IOException {
-        Socket sock = new Socket("127.0.0.1", 9999);
+        Socket sock = new Socket(args[1], 9999);
 
 
 
-        File myFile = new File("D:\\High Energy Gas Fracturing Test.pdf");
+        File myFile = new File(args[2]);
 
         byte[] buffer = new byte[1024 * 50];
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(myFile));
         BufferedOutputStream bos = new BufferedOutputStream(sock.getOutputStream());
 
-        int len = 0;
+        DataOutputStream outputStream = new DataOutputStream(sock.getOutputStream());
+        outputStream.writeUTF(myFile.getName());
+        outputStream.flush();
+
+        int len;
         while ((len = bis.read(buffer)) > 0) {
             bos.write(buffer, 0, len);
             System.out.print("#");
