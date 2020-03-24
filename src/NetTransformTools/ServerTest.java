@@ -16,7 +16,7 @@ public class ServerTest {
         DataInputStream inputStream = new DataInputStream(sock.getInputStream());
         String fileName = inputStream.readUTF();
 
-        File dic = new File(".\\Cache");
+        File dic = new File("Cache");
         if (!dic.exists()){
             dic.mkdir();
         }

@@ -5,11 +5,11 @@ import java.net.Socket;
 
 public class ClientTest {
     public static void main(String args[]) throws IOException {
-        Socket sock = new Socket(args[1], 9999);
+        Socket sock = new Socket(args[0], 9999);
 
 
 
-        File myFile = new File(args[2]);
+        File myFile = new File(args[1]);
 
         byte[] buffer = new byte[1024 * 50];
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(myFile));
