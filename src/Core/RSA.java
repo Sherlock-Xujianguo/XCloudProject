@@ -83,8 +83,8 @@ public class RSA {
     }
 
     public static String DecryptByPublicKeyString(String inputStringData, String publicKey) throws Exception {
-        byte[] key = publicKey.getBytes();
-        return new String(DecryptByPublicKeyByte(inputStringData.getBytes(), key), CHARSET);
+        byte[] key = Base64.getDecoder().decode(publicKey);
+        return new String(DecryptByPublicKeyByte(Base64.getDecoder().decode(inputStringData), key), CHARSET);
     }
 
     public static void main(String[] args) throws Exception{
