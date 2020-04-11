@@ -19,6 +19,7 @@ public class ClientDemo {
                 Debug.Log("Yep");
             }
         });
+
         MainClient.Instance.Close();
     }
 }

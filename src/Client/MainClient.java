@@ -7,6 +7,7 @@ import com.sun.tools.javac.Main;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.KeyPair;
 import java.util.Scanner;
 
 public class MainClient {
@@ -17,6 +18,9 @@ public class MainClient {
     Socket _clientSocket;
     DataInputStream _dis;
     DataOutputStream _dos;
+    KeyPair _keyPair;
+    String _privateKey;
+    String _publicKey;
     String _serverPublicKey;
     byte[] _serverPublicKeyByte;
     byte[] _desKey;
@@ -35,15 +39,22 @@ public class MainClient {
         _dis = new DataInputStream(_clientSocket.getInputStream());
         _dos = new DataOutputStream(_clientSocket.getOutputStream());
 
+        _keyPair = RSA.GetKeyPair(); // 生成RSA公私钥对
+        _privateKey = RSA.GetPrivateKeyString(_keyPair);
+        _publicKey = RSA.GetPublicKeyString(_keyPair);
+
         _serverPublicKey = _dis.readUTF(); // 接收公钥
         Debug.Log("Server public key is: " + _serverPublicKey);
+
+        _dos.writeUTF(_publicKey);
+        _dos.flush();
 
         String desKeyString = DES.GetKeyString();
         _desKey = DES.Key2Byte(DES.String2Key(desKeyString)); // 生成DES密钥
         Debug.Log("DES Key: " + desKeyString);
         SendLongString(desKeyString);
 
-        String serverDESKey = GetLongStringByPublicKey(); // 接收传回的DES密钥
+        String serverDESKey = GetLongString(); // 接收传回的DES密钥
         if (serverDESKey.equals(desKeyString)) { // 确认密钥完整性
             Debug.Log("Init Finish");
             _isInit = true;
@@ -71,8 +82,8 @@ public class MainClient {
         _dos.flush();
     }
 
-    public String GetLongStringByPublicKey() throws Exception {
-        return RSA.DecryptByPublicKeyString(_dis.readUTF(), _serverPublicKey);
+    public String GetLongString() throws Exception {
+        return RSA.DecryptByPrivateKeyString(_dis.readUTF(), _privateKey);
     }
 
     public void SendFile(String filePath, SendFileCallback sendFileCallback) {

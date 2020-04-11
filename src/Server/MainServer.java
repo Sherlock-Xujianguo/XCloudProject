@@ -21,6 +21,8 @@ public class MainServer {
         KeyPair _keyPair;
         String _privateKey;
         String _publicKey;
+        String _clientPublicKey;
+        byte[] _clientPublicKeyByte;
         byte[] _desKey;
 
         public boolean _isInit = false;
@@ -53,11 +55,14 @@ public class MainServer {
                 _dos.writeUTF(_publicKey); // 发送公钥
                 _dos.flush();
 
+                _clientPublicKey = _dis.readUTF();
+                Debug.Log("Client public key is: " + _clientPublicKey);
+
                 String desKeyString = GetLongString();
                 _desKey = DES.Key2Byte(DES.String2Key(desKeyString)); // 获取DES密钥
                 Debug.Log("DES Key: " + desKeyString);
 
-                SendLongStringByPrivateKey(desKeyString); // 重新加密后传回
+                SendLongString(desKeyString); // 重新加密后传回
 
                 _isInit = true;
             }
@@ -76,6 +81,7 @@ public class MainServer {
                     if (command_line.equals("SendFile")) {
                         GetFile();
                     }
+
                 }
                 catch (Exception e) {
                     if (e instanceof EOFException) {
@@ -94,9 +100,8 @@ public class MainServer {
             return RSA.DecryptByPrivateKeyString(_dis.readUTF(), _privateKey);
         }
 
-        private void SendLongStringByPrivateKey(String inputString) throws Exception {
-            _dos.writeUTF(RSA.EncryptByPrivateKeyString(inputString, _privateKey));
-            _dos.flush();
+        private void SendLongString(String inputString) throws Exception {
+            _dos.writeUTF(RSA.EncryptByPublicKeyString(inputString, _clientPublicKey));
         }
 
         private void GetFile() {

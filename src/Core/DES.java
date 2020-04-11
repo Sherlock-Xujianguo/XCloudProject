@@ -9,6 +9,7 @@ import java.util.Base64;
 public class DES {
     static final int KEY_SIZE = 56;
     static final String KEY_ALGORITHM = "DES";
+    static final String CIPHER_ALGORITHM = "DES/ECB/NoPadding";
 
     public static byte[] GetKeyByte() throws Exception {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM);
@@ -55,14 +56,14 @@ public class DES {
     }
 
     public static byte[] EncrypyByte(byte[] inputByteData, byte[] key) throws Exception {
-        SecretKeySpec sKey = new SecretKeySpec(key, KEY_ALGORITHM);
+        SecretKey sKey = new SecretKeySpec(key, KEY_ALGORITHM);
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, sKey);
         return cipher.doFinal(inputByteData);
     }
 
     public static byte[] DecrypyByte(byte[] inputByteData, byte[] key) throws Exception {
-        SecretKeySpec sKey = new SecretKeySpec(key, KEY_ALGORITHM);
+        SecretKey sKey = new SecretKeySpec(key, KEY_ALGORITHM);
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, sKey);
         return cipher.doFinal(inputByteData);
