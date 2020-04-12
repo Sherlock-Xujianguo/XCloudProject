@@ -1,8 +1,6 @@
 package Client;
 
-import Core.DES;
-import Core.Debug;
-import Core.RSA;
+import Core.*;
 import com.sun.tools.javac.Main;
 
 import java.io.*;
@@ -108,10 +106,38 @@ public class MainClient {
                 _dos.flush();
             }
 
+            fis.close();
+            is.close();
+
             sendFileCallback.OnSuccess();
         }
         catch (Exception e) {
             Debug.Log(e);
+            sendFileCallback.OnFail();
+        }
+    }
+
+    public void SendFileTree(String path, SendFileCallback sendFileCallback) {
+        try {
+            FileTree.SaveClientFileTree(path);
+            SendLongString("SendFileTree");
+            File file = new File(Setting.Client._fileTreeDataName);
+
+            FileInputStream fis = new FileInputStream(file);
+
+            int length;
+            byte[] buff = new byte[1024 * 1024];
+            while ((length = fis.read(buff, 0, buff.length)) != -1) {
+                _dos.write(buff, 0, length);
+                _dos.flush();
+            }
+
+            fis.close();
+            sendFileCallback.OnSuccess();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            sendFileCallback.OnFail();
         }
     }
 

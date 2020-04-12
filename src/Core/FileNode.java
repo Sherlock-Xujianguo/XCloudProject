@@ -51,7 +51,7 @@ public class FileNode implements Serializable {
         print(0);
     }
 
-    public void print(int level) {
+    private void print(int level) {
         System.out.print(" ".repeat(level));
         if (_isDirectory) {
             System.out.print("*");

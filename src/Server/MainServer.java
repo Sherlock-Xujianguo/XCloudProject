@@ -1,8 +1,6 @@
 package Server;
 
-import Core.DES;
-import Core.Debug;
-import Core.RSA;
+import Core.*;
 
 import javax.swing.*;
 import java.io.*;
@@ -81,6 +79,9 @@ public class MainServer {
                     if (command_line.equals("SendFile")) {
                         GetFile();
                     }
+                    if (command_line.equals("SendFileTree")) {
+                        GetFileTree();
+                    }
 
                 }
                 catch (Exception e) {
@@ -119,6 +120,38 @@ public class MainServer {
                     os.flush();
                 }
 
+                fos.close();
+                os.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void GetFileTree() {
+            try {
+                File dir = new File(Setting.Server._fileTreeDataPath);
+                Debug.Log(dir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                File file = new File(Setting.Server._fileTreeDataName);
+
+                FileOutputStream fos = new FileOutputStream(file);
+
+                int length;
+                byte[] buff = new byte[1024 * 1024];
+                while ((length = _dis.read(buff, 0, buff.length)) != -1) {
+                    fos.write(buff, 0, length);
+                    fos.flush();
+                }
+
+                fos.close();
+
+                FileNode fn = FileTree.GetFileTree(Setting.Server._fileTreeDataName);
+                fn.print();
+                FileTree.RestoreServerFileTree(fn);
             }
             catch (Exception e) {
                 e.printStackTrace();
