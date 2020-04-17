@@ -1,7 +1,11 @@
 package Core;
 
 import javax.crypto.Cipher;
-import java.io.IOException;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.*;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -101,7 +105,7 @@ public class RSA {
         Debug.Log(privateKeyByte);
         Debug.Log(privateKeyString);
 
-        String data = "RSA 加解密测试";
+        String data = "1";
         Debug.Log(new String(RSA.DecryptByPrivateKeyByte(RSA.EncryptByPublicKeyByte(data.getBytes(), publicKeyByte), privateKeyByte), CHARSET));
         Debug.Log(RSA.DecryptByPrivateKeyString(RSA.EncryptByPublicKeyString(data, publicKeyString), privateKeyString));
     }

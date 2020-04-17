@@ -13,7 +13,7 @@ public class FileNode implements Serializable {
         _name = file.getName();
         _isDirectory = file.isDirectory();
         if (_isDirectory) {
-            int length;
+            int length = 0;
             File[] fileList = file.listFiles();
             if (fileList == null) {
                 length = 0;

@@ -2,7 +2,6 @@ package Server;
 
 import Core.*;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,20 +31,37 @@ public class MainServer {
             _dos = new DataOutputStream(_clientSocket.getOutputStream());
         }
 
+        private void CreateDefaultDirectory() {
+            File file = new File(Setting.Server._defaultDirectoryPath);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+        }
+
         void Close(){
             try {
                 Debug.Log(_clientSocket.getInetAddress() + "Close");
                 _clientSocket.close();
                 _dis.close();
                 _dos.close();
+                CleanTempFile();
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        private void CleanTempFile() {
+            File file = new File(Setting.Server._tempFile);
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+
         public void run() {
             try {
+                CreateDefaultDirectory();
+
                 _keyPair = RSA.GetKeyPair(); // 生成RSA公私钥对
                 _privateKey = RSA.GetPrivateKeyString(_keyPair);
                 _publicKey = RSA.GetPublicKeyString(_keyPair);
@@ -57,7 +73,7 @@ public class MainServer {
                 Debug.Log("Client public key is: " + _clientPublicKey);
 
                 String desKeyString = GetLongString();
-                _desKey = DES.Key2Byte(DES.String2Key(desKeyString)); // 获取DES密钥
+                _desKey = AES.StringKey2Byte(desKeyString); // 获取DES密钥
                 Debug.Log("DES Key: " + desKeyString);
 
                 SendLongString(desKeyString); // 重新加密后传回
@@ -82,7 +98,12 @@ public class MainServer {
                     if (command_line.equals("SendFileTree")) {
                         GetFileTree();
                     }
-
+                    if (command_line.equals("GetFileTree")) {
+                        SendFileTree();
+                    }
+                    if (command_line.equals("GetFile")) {
+                        SendFile();
+                    }
                 }
                 catch (Exception e) {
                     if (e instanceof EOFException) {
@@ -108,23 +129,65 @@ public class MainServer {
         private void GetFile() {
             try {
                 String fileName = GetLongString();
-                File file = new File(fileName);
+                Debug.Log(fileName);
+                File file = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + fileName);
 
                 FileOutputStream fos = new FileOutputStream(file);
-                OutputStream os = DES.DESOutputStream(fos, _desKey);
 
                 int length;
-                byte[] buff = new byte[1024 * 1024];
-                while ((length = _dis.read(buff, 0, buff.length)) != -1) {
-                    os.write(buff, 0, length);
-                    os.flush();
+
+                while ((length = Integer.parseInt(_dis.readUTF())) != -1) {
+                    byte[] buff = new byte[length];
+                    _dis.read(buff);
+                    byte[] decrypyByte = AES.DecrypyByte(buff, _desKey);
+
+                    fos.write(decrypyByte, 0, decrypyByte.length);
+                    fos.flush();
                 }
 
                 fos.close();
-                os.close();
+
+                Close();
             }
             catch (Exception e) {
                 e.printStackTrace();
+                Close();
+            }
+        }
+
+        private void SendFile() {
+            try {
+                String filePath = GetLongString();
+                File file = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + filePath);
+                if (!file.exists()) {
+                    SendLongString("0");
+                    Debug.Log(filePath + ": File not exsits");
+                    Close();
+                    return;
+                }
+                else {
+                    SendLongString("1");
+                }
+                FileInputStream fis = new FileInputStream(file);
+
+                int length;
+                byte[] buff = new byte[1024];
+                while ((length = fis.read(buff, 0, buff.length)) != -1) {
+                    byte[] encrypyByte = AES.EncrypyByte(buff, _desKey);
+                    Debug.Log(encrypyByte);
+                    _dos.writeUTF(Integer.toString(encrypyByte.length));
+
+                    _dos.write(encrypyByte, 0, encrypyByte.length);
+                    _dos.flush();
+                }
+                _dos.writeUTF(Integer.toString(-1));
+
+                fis.close();
+                Close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                Close();
             }
         }
 
@@ -152,9 +215,35 @@ public class MainServer {
                 FileNode fn = FileTree.GetFileTree(Setting.Server._fileTreeDataName);
                 fn.print();
                 FileTree.RestoreServerFileTree(fn);
+
+                Close();
             }
             catch (Exception e) {
                 e.printStackTrace();
+                Close();
+            }
+        }
+
+        private void SendFileTree() {
+            try {
+                FileTree.SaveServerFileTree(Setting.Server._defaultDirectoryPath);
+                File file = new File(Setting.Server._fileTreeDataName);
+
+                FileInputStream fis = new FileInputStream(file);
+
+                int length;
+                byte[] buff = new byte[1024 * 1024];
+                while ((length = fis.read(buff, 0, buff.length)) != -1) {
+                    _dos.write(buff, 0, length);
+                    _dos.flush();
+                }
+
+                fis.close();
+                Close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                Close();
             }
         }
     }

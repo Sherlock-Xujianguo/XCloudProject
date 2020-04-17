@@ -24,6 +24,7 @@ public class FileTree implements Serializable{
             FileNode fn = new FileNode(path);
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(savePath));
             oos.writeObject(fn);
+            oos.close();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -34,6 +35,7 @@ public class FileTree implements Serializable{
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(savePath));
             FileNode fn = (FileNode) ois.readObject();
+            ois.close();
             return fn;
         }
         catch (Exception e) {
@@ -57,25 +59,24 @@ public class FileTree implements Serializable{
                 target.mkdirs();
             }
 
-            targetPath = targetPath + Setting._envSep + fn._name;
-            File f = new File(targetPath);
-            if (fn._isDirectory) {
-                if (!f.exists()) {
-                    f.mkdirs();
-                }
-            }
-            else {
-                if (!f.exists()) {
-                    f.createNewFile();
-                }
-            }
-
             if (fn._listFiles == null) {
                 return;
             }
 
             for (FileNode fntemp:fn._listFiles) {
-                RestoreFileTree(fntemp, targetPath);
+                String fnPath = targetPath + Setting._envSep + fntemp._name;
+                Debug.Log(fnPath);
+                File f = new File(fnPath);
+                if (fntemp._isDirectory) {
+                    RestoreFileTree(fntemp, fnPath);
+                }
+                else {
+                    if (!f.exists()) {
+                        f.createNewFile();
+                    }
+                }
+
+
             }
         }
         catch (Exception e) {
