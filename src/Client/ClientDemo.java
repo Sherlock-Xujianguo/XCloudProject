@@ -40,8 +40,8 @@ public class ClientDemo {
 //            }
 //        });
 //
-        MainClient.Instance.GetFileTree();
+        //MainClient.Instance.GetFileTree();
 
-        MainClient.Instance.GetFile("b_d1f86e7a9efb1421bd7f0b996593abd9.jpg");
+        MainClient.Instance.GetDirectory();
     }
 }

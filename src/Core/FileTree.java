@@ -65,7 +65,6 @@ public class FileTree implements Serializable{
 
             for (FileNode fntemp:fn._listFiles) {
                 String fnPath = targetPath + Setting._envSep + fntemp._name;
-                Debug.Log(fnPath);
                 File f = new File(fnPath);
                 if (fntemp._isDirectory) {
                     RestoreFileTree(fntemp, fnPath);

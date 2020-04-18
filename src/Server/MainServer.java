@@ -128,25 +128,27 @@ public class MainServer {
 
         private void GetFile() {
             try {
-                String fileName = GetLongString();
-                Debug.Log(fileName);
-                File file = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + fileName);
+                String filePath = GetLongString();
+                Debug.Log(filePath);
+                File file = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + filePath);
+                File parent = new File(file.getParent();
+                if (!parent.exists()) {
+                    parent.mkdirs();
+                }
 
                 FileOutputStream fos = new FileOutputStream(file);
 
                 int length;
-
                 while ((length = Integer.parseInt(_dis.readUTF())) != -1) {
                     byte[] buff = new byte[length];
-                    _dis.read(buff);
+                    _dis.read(buff, 0, length);
                     byte[] decrypyByte = AES.DecrypyByte(buff, _desKey);
-
+                    Debug.Log(decrypyByte);
                     fos.write(decrypyByte, 0, decrypyByte.length);
                     fos.flush();
                 }
 
                 fos.close();
-
                 Close();
             }
             catch (Exception e) {
@@ -173,8 +175,10 @@ public class MainServer {
                 int length;
                 byte[] buff = new byte[1024];
                 while ((length = fis.read(buff, 0, buff.length)) != -1) {
+                    Debug.Log(buff);
+
                     byte[] encrypyByte = AES.EncrypyByte(buff, _desKey);
-                    Debug.Log(encrypyByte);
+
                     _dos.writeUTF(Integer.toString(encrypyByte.length));
 
                     _dos.write(encrypyByte, 0, encrypyByte.length);

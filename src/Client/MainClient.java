@@ -106,36 +106,35 @@ public class MainClient {
         return RSA.DecryptByPrivateKeyString(_dis.readUTF(), _privateKey);
     }
 
-    public void SendFile(String filePath, SendFileCallback sendFileCallback) {
+    public void SendFile(String filePath) {
         try {
             Init();
 
             SendLongString("SendFile");
-            File file = new File(filePath);
-            SendLongString(file.getName());
+            SendLongString(filePath);
 
+            File file = new File(Setting.Client._defaultDirectoryPath + Setting._envSep + filePath);
             FileInputStream fis = new FileInputStream(file);
 
             int length;
             byte[] buff = new byte[1024];
             while ((length = fis.read(buff, 0, buff.length)) != -1) {
                 byte[] encrypyByte = AES.EncrypyByte(buff, _desKey);
-                Debug.Log(encrypyByte);
+
                 _dos.writeUTF(Integer.toString(encrypyByte.length));
 
                 _dos.write(encrypyByte, 0, encrypyByte.length);
+
+
                 _dos.flush();
             }
             _dos.writeUTF(Integer.toString(-1));
 
             fis.close();
-            sendFileCallback.OnSuccess();
-
             Close();
         }
         catch (Exception e) {
             e.printStackTrace();
-            sendFileCallback.OnFail();
             Close();
         }
     }
@@ -158,9 +157,9 @@ public class MainClient {
             int length;
             while ((length = Integer.parseInt(_dis.readUTF())) != -1) {
                 byte[] buff = new byte[length];
-                _dis.read(buff);
+                _dis.read(buff, 0, length);
                 byte[] decrypyByte = AES.DecrypyByte(buff, _desKey);
-
+                Debug.Log(decrypyByte);
                 fos.write(decrypyByte, 0, decrypyByte.length);
                 fos.flush();
             }
@@ -236,6 +235,30 @@ public class MainClient {
         catch (Exception e) {
             e.printStackTrace();
             Close();
+        }
+    }
+
+    public void GetDirectory() {
+        GetFileTree();
+        GetDirectory(Setting.Client._defaultDirectoryPath, "");
+    }
+
+
+    private void GetDirectory(String path, String tempPath) {
+        File file = new File(path);
+        File[] fileList = file.listFiles();
+        if (fileList == null || fileList.length == 0) {
+            return;
+        }
+
+        for (File f:fileList) {
+            String targetFile = tempPath + Setting._envSep + f.getName();
+            if (f.isDirectory()) {
+                GetDirectory(path + Setting._envSep + f.getName(), targetFile);
+            }
+            else {
+                GetFile(targetFile);
+            }
         }
     }
 
