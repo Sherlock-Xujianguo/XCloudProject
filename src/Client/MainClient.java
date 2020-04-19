@@ -173,11 +173,11 @@ public class MainClient {
         }
     }
 
-    public void SendFileTree(String path, SendFileCallback sendFileCallback) {
+    public void SendFileTree() {
         try {
             Init();
 
-            FileTree.SaveClientFileTree(path);
+            FileTree.SaveClientFileTree(Setting.Client._defaultDirectoryPath);
             SendLongString("SendFileTree");
             File file = new File(Setting.Client._fileTreeDataName);
 
@@ -191,13 +191,11 @@ public class MainClient {
             }
 
             fis.close();
-            sendFileCallback.OnSuccess();
 
             Close();
         }
         catch (Exception e) {
             e.printStackTrace();
-            sendFileCallback.OnFail();
             Close();
         }
     }
@@ -258,6 +256,29 @@ public class MainClient {
             }
             else {
                 GetFile(targetFile);
+            }
+        }
+    }
+
+    public void SendDirectory() {
+        SendFileTree();
+        SendDirectory(Setting.Client._defaultDirectoryPath, "");
+    }
+
+    private void SendDirectory(String path, String tempPath) {
+        File file = new File(path);
+        File[] fileList = file.listFiles();
+        if (fileList == null || fileList.length == 0) {
+            return;
+        }
+
+        for (File f:fileList) {
+            String targetFile = tempPath + Setting._envSep + f.getName();
+            if (f.isDirectory()) {
+                SendDirectory(path + Setting._envSep + f.getName(), targetFile);
+            }
+            else {
+                SendFile(targetFile);
             }
         }
     }

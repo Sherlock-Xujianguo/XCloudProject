@@ -131,7 +131,7 @@ public class MainServer {
                 String filePath = GetLongString();
                 Debug.Log(filePath);
                 File file = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + filePath);
-                File parent = new File(file.getParent();
+                File parent = new File(file.getParent());
                 if (!parent.exists()) {
                     parent.mkdirs();
                 }

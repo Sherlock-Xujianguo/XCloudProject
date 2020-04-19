@@ -42,6 +42,6 @@ public class ClientDemo {
 //
         //MainClient.Instance.GetFileTree();
 
-        MainClient.Instance.GetDirectory();
+        MainClient.Instance.SendDirectory();
     }
 }
