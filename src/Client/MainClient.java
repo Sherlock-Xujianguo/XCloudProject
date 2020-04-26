@@ -43,24 +43,24 @@ public class MainClient {
         _publicKey = RSA.GetPublicKeyString(_keyPair);
 
         _serverPublicKey = _dis.readUTF(); // 接收公钥
-        Debug.Log("Server public key is: " + _serverPublicKey);
+        // Debug.Log("Server public key is: " + _serverPublicKey);
 
         _dos.writeUTF(_publicKey);
         _dos.flush();
-        Debug.Log("Client public key is: " + _publicKey);
+        // Debug.Log("Client public key is: " + _publicKey);
 
         String desKeyString = AES.GetKeyString();
         _desKey = AES.StringKey2Byte(desKeyString); // 生成DES密钥
-        Debug.Log("DES Key: " + desKeyString);
+        // Debug.Log("DES Key: " + desKeyString);
         SendLongString(desKeyString);
 
         String serverDESKey = GetLongString(); // 接收传回的DES密钥
         if (serverDESKey.equals(desKeyString)) { // 确认密钥完整性
-            Debug.Log("Init Finish");
+            // Debug.Log("Init Finish");
             _isInit = true;
         }
         else {
-            Debug.Log("DES Key is not correct, close connect!");
+            // Debug.Log("DES Key is not correct, close connect!");
             Close();
         }
     }
@@ -83,7 +83,7 @@ public class MainClient {
             _dis.close();
             _dos.close();
             CleanTempFile();
-            Debug.Log("Close");
+            // Debug.Log("Close");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -120,6 +120,7 @@ public class MainClient {
             byte[] buff = new byte[1024];
             while ((length = fis.read(buff, 0, buff.length)) != -1) {
                 byte[] encrypyByte = AES.EncrypyByte(buff, _desKey);
+                Debug.Log(new String (encrypyByte));
 
                 _dos.writeUTF(Integer.toString(encrypyByte.length));
 
@@ -286,6 +287,10 @@ public class MainClient {
     public interface SendFileCallback {
         void OnFail();
         void OnSuccess();
+    }
+
+    public void TestJar(String test) {
+        System.out.println(test);
     }
 
     public static void main(String[] args) throws Exception {
