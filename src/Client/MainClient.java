@@ -120,9 +120,9 @@ public class MainClient {
             byte[] buff = new byte[1024];
             while ((length = fis.read(buff, 0, buff.length)) != -1) {
                 byte[] encrypyByte = AES.EncrypyByte(buff, _desKey);
-                Debug.Log(new String (encrypyByte));
 
                 _dos.writeUTF(Integer.toString(encrypyByte.length));
+                _dos.writeUTF(Integer.toString(length));
 
                 _dos.write(encrypyByte, 0, encrypyByte.length);
 

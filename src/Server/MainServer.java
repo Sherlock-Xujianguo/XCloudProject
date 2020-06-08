@@ -74,7 +74,7 @@ public class MainServer {
 
                 String desKeyString = GetLongString();
                 _desKey = AES.StringKey2Byte(desKeyString); // 获取DES密钥
-                Debug.Log("DES Key: " + desKeyString);
+                Debug.Log("AES Key: " + desKeyString);
 
                 SendLongString(desKeyString); // 重新加密后传回
 
@@ -140,11 +140,19 @@ public class MainServer {
 
                 int length;
                 while ((length = Integer.parseInt(_dis.readUTF())) != -1) {
+                    int rstLength = Integer.parseInt(_dis.readUTF());
                     byte[] buff = new byte[length];
                     _dis.read(buff, 0, length);
                     byte[] decrypyByte = AES.DecrypyByte(buff, _desKey);
-                    Debug.Log(decrypyByte);
-                    fos.write(decrypyByte, 0, decrypyByte.length);
+
+
+                    byte[] rst = new byte[rstLength];
+                    for (int i = 0; i < rstLength; i++) {
+                        rst[i] = decrypyByte[i];
+                    }
+
+                    Debug.Log(new String(rst, "UTF-8"));
+                    fos.write(rst, 0, rst.length);
                     fos.flush();
                 }
 

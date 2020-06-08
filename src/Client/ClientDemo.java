@@ -7,6 +7,6 @@ import java.util.Scanner;
 
 public class ClientDemo {
     public static void main(String args[]) throws Exception {
-        MainClient.Instance.SendDirectory();
+        MainClient.Instance.SendFile("temp.txt");
     }
 }
