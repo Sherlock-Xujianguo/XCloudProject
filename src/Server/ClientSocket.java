@@ -41,26 +41,31 @@ public class ClientSocket {
         }
 
         public String GetUTF8() throws IOException{
-            byte[] lenbyte = new byte[1024];
-            int l = _is.read(lenbyte);
-            int len = Integer.parseInt(new String(lenbyte, 0, l, "utf-8"));
-            byte[] str = new byte[len];
-            _is.read(str);
-            return new String(str, "utf-8");
+            byte[] str = new byte[1024];
+            int len = _is.read(str);
+            byte[] rst = new byte[len];
+            for (int i = 0; i < len; i++) {
+                rst[i] = str[i];
+            }
+            return new String(rst, "utf-8");
         }
 
         public void WriteUTF8(String str) throws IOException {
-            byte[] strByte = str.getBytes();
-            Debug.Log(Integer.toString(strByte.length));
-            _os.write(Integer.toString(strByte.length).getBytes());
-            _os.flush();
-            _os.write(strByte);
-            _os.flush();
+            _os.write(str.getBytes());
             return;
         }
 
         public void Sign() throws IOException{
-            WriteUTF8("nihao客户端");
+            String userMD5 = GetUTF8();
+            Debug.Log(userMD5);
+            File userDir = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + userMD5);
+            if (userDir.exists()) {
+                WriteUTF8("-1");
+            }
+            else {
+                userDir.mkdir();
+                WriteUTF8("0");
+            }
             Close();
         }
 

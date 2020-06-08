@@ -44,33 +44,33 @@ public class ServerSocket
     private void WriteUTF8(string str, Socket socket)
     {
         byte[] strBytes = Encoding.UTF8.GetBytes(str);
-        socket.Send(Encoding.UTF8.GetBytes(strBytes.Length.ToString()));
         socket.Send(strBytes);
     }
 
     private string GetUTF8(Socket socket)
     {
-        byte[] lenbyte = new byte[1024];
-        int l = socket.Receive(lenbyte);
-        Debug.Log(l);
-        Debug.Log(Encoding.UTF8.GetString(lenbyte, 0, l));
-        int len = int.Parse(Encoding.UTF8.GetString(lenbyte, 0, l));
-        byte[] str = new byte[len];
-        socket.Receive(str);
-        return Encoding.UTF8.GetString(str);
+        byte[] str = new byte[1024];
+        int len = socket.Receive(str);
+        byte[] rst = new byte[len];
+        for (int i = 0; i < len; i++)
+        {
+            rst[i] = str[i];
+        }
+        return Encoding.UTF8.GetString(rst);
     }
 
     private void WriteByte(byte[] data, Socket socket)
     {
-        socket.Send(Encoding.UTF8.GetBytes(data.Length.ToString()));
         socket.Send(data);
     }
 
-    public void Sign(string userMD5)
+    public int Sign() // return 0注册成功，return-1注册失败
     {
         Socket socket = GetSocket();
-        Debug.Log(GetUTF8(socket));
+        WriteUTF8(UserManager.Instance.GetUserEncryptName(), socket);
+        int rst = int.Parse(GetUTF8(socket));
         socket.Close();
+        return rst;
     }
 
     private void ConnectCallback(IAsyncResult asyncResult)

@@ -8,9 +8,11 @@ public class SocketTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ServerSocket s = ServerSocket.GetInstance();
+        UserManager.Instance.Init("xuhaoran", "123456");
+        /*ServerSocket s = ServerSocket.GetInstance();
 
-        s.Sign("ni");
+        Debug.Log(s.Sign());*/
+        UserManager.Instance.DecryptFile("C:\\Users\\13974\\XCloud\\EncryptTestEN.txt", "C:\\Users\\13974\\XCloud\\EncryptTestDE.txt");
     }
 
 }

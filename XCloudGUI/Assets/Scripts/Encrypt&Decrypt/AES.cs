@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 
 public class AES
 {
-    public static byte[] AesEncrypt(byte[] str, byte[] key)
+    public static byte[] Encrypt(byte[] str, byte[] key)
     {
         if (str == null) return null;
 
@@ -22,7 +23,7 @@ public class AES
         return cTransform.TransformFinalBlock(str, 0, str.Length);
     }
 
-    public static byte[] AesDecrypt(byte[] str, byte[] key)
+    public static byte[] Decrypt(byte[] str, byte[] key)
     {
         if (str == null) return null;
 
@@ -40,9 +41,9 @@ public class AES
     public static void TestAES()
     {
         string str = "嘿，你好漂亮";
-        byte[] result = AesEncrypt(GetBytes(str), GetBytes("12345678876543211234567887654abc"));
+        byte[] result = Encrypt(GetBytes(str), GetBytes("12345678876543211234567887654abc"));
         Debug.Log(GetString(result));
-        Debug.Log(GetString(AesDecrypt(result, GetBytes("12345678876543211234567887654abc"))));
+        Debug.Log(GetString(Decrypt(result, GetBytes("12345678876543211234567887654abc"))));
     }
 
     public static byte[] GetBytes(string str)
