@@ -35,6 +35,16 @@ public class UserManager
         return Convert.ToBase64String(AES.Encrypt(Encoding.UTF8.GetBytes(userName), GetUserMD5()));
     }
 
+    public byte[] Encrypt(byte[] data)
+    {
+        return AES.Encrypt(data, userAESKey);
+    }
+
+    public byte[] Decrypt(byte[] data)
+    {
+        return AES.Decrypt(data, userAESKey);
+    }
+
     public void EncryptFile(string sourcePath, string targetPath)
     {
         FileStream fread = new FileStream(sourcePath, FileMode.Open, FileAccess.Read);

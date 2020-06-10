@@ -7,6 +7,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,9 +25,8 @@ public class ClientSocket {
 
         ServerWorkingThread(Socket socket) throws Exception{
             _clientSocket = socket; // 接收连接
-
             _is = _clientSocket.getInputStream();
-            _os =_clientSocket.getOutputStream();
+            _os = _clientSocket.getOutputStream();
         }
 
         void Close(){
@@ -41,21 +42,19 @@ public class ClientSocket {
         }
 
         public String GetUTF8() throws IOException{
-            byte[] str = new byte[1024];
-            int len = _is.read(str);
-            byte[] rst = new byte[len];
-            for (int i = 0; i < len; i++) {
-                rst[i] = str[i];
-            }
-            return new String(rst, "utf-8");
+            byte[] buf = new byte[1024];
+            int len = _is.read(buf, 0, buf.length);
+            return new String(buf, 0, len);
+
         }
 
-        public void WriteUTF8(String str) throws IOException {
-            _os.write(str.getBytes());
-            return;
+        public void WriteUTF8(String str) throws Exception {
+            _os.write(str.getBytes(), 0, str.getBytes().length);
+            _os.flush();
+            Thread.sleep(100);
         }
 
-        public void Sign() throws IOException{
+        public void Sign() throws Exception{
             String userMD5 = GetUTF8();
             Debug.Log(userMD5);
             File userDir = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + userMD5);
@@ -69,11 +68,115 @@ public class ClientSocket {
             Close();
         }
 
+        public void GetFile() throws Exception {
+            String userName = GetUTF8();
+            Debug.Log(userName);
+            String filePath = GetUTF8();
+            Debug.Log(filePath);
+            String path = Setting.Server._defaultDirectoryPath + Setting._envSep + userName + filePath;
+            Debug.Log(path);
+            File file = new File(path);
+            if (!new File(file.getParent()).exists()){
+                new File(file.getParent()).mkdirs();
+            }
+            FileOutputStream fo = new FileOutputStream(file);
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = _is.read(buf, 0, buf.length)) > 0) {
+                fo.write(buf, 0, len);
+                Debug.Log(len);
+            }
+            fo.close();
+            Close();
+        }
+
+        public void LogIn() throws Exception {
+            String userMD5 = GetUTF8();
+            Debug.Log(userMD5);
+            File userDir = new File(Setting.Server._defaultDirectoryPath + Setting._envSep + userMD5);
+            if (userDir.exists()) {
+                WriteUTF8("0");
+            }
+            else {
+                WriteUTF8("-1");
+            }
+            Close();
+        }
+
+        public void SendFile() throws Exception {
+            String userName = GetUTF8();
+            Debug.Log(userName);
+            String filePath = GetUTF8();
+            Debug.Log(filePath);
+            String path = Setting.Server._defaultDirectoryPath + Setting._envSep + userName + filePath;
+            Debug.Log(path);
+
+            File file = new File(path);
+            FileInputStream fi = new FileInputStream(file);
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = fi.read(buf)) > 0) {
+                _os.write(buf, 0, len);
+                _os.flush();
+            }
+            fi.close();
+            Close();
+        }
+
+        public void CheckFile() throws Exception {
+            String userName = GetUTF8();
+            List<File> fileList = new ArrayList<>();
+            fileList.add(new File(Setting.Server._defaultDirectoryPath + Setting._envSep + userName));
+            while (fileList.size() > 0) {
+                File file = fileList.get(0);
+                fileList.remove(0);
+                if (file.isDirectory()) {
+                    File[] subFile = file.listFiles();
+                    if (subFile == null || subFile.length == 0) {
+                        continue;
+                    }
+                    for (int i = 0; i < subFile.length; i++) {
+                        fileList.add(subFile[i]);
+                    }
+                } else {
+                    String path = ChangePath(file.toString(), userName);
+                    Debug.Log(path);
+                    WriteUTF8(path);
+                }
+            }
+            Close();
+        }
+
+        public String ChangePath(String path, String userName) {
+            path = path.replace(Setting.Server._defaultDirectoryPath + Setting._envSep, "");
+            return path.replace(userName, "");
+        }
+
         public void run() {
             try {
-                while (!_clientSocket.isClosed()) {
-
-                    Sign();
+                while (true) {
+                    String CommandLind = GetUTF8();
+                    Debug.Log("Command: " + CommandLind);
+                    if (CommandLind.equals( "SendFile")) {
+                        GetFile();
+                        break;
+                    }
+                    else if (CommandLind.equals("GetFile")) {
+                        SendFile();
+                        break;
+                    }
+                    else if (CommandLind.equals("CheckFile")) {
+                        CheckFile();
+                        break;
+                    }
+                    else if (CommandLind.equals("LogIn")) {
+                        LogIn();
+                        break;
+                    }
+                    else if (CommandLind.equals("Sign")) {
+                        Sign();
+                        break;
+                    }
                 }
                 Close();
             }
