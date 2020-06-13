@@ -8,7 +8,12 @@ public class SocketTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-            
+        
+    }
+
+    private void OnApplicationQuit()
+    {
+        FileManager.t.Abort();
     }
 
 }

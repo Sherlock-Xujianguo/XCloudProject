@@ -40,7 +40,6 @@ public class Login : MonoBehaviour
             Debug.Log("登录成功");
             _notCorrectText.SetActive(false);
             _logInPanel.SetActive(false);
-            ServerSocket.Instance.CheckFile();
         }
         else
         {

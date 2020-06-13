@@ -71,6 +71,8 @@ public class ServerSocket
         WriteUTF8("SendFile", socket);
         WriteUTF8(UserManager.Instance.userEncryptName, socket);
         WriteUTF8(ChangeFilePath(filePath), socket);
+        WriteUTF8(FileManager.GetFileMD5(filePath), socket);
+        WriteUTF8(new FileInfo(filePath).Length.ToString(), socket);
 
         FileStream fread = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         byte[] buf = new byte[1024];
@@ -84,8 +86,7 @@ public class ServerSocket
             }
             byte[] encryptBuf = UserManager.Instance.Encrypt(realBuf);
             IAsyncResult result = socket.BeginSend(encryptBuf, 0, encryptBuf.Length, SocketFlags.None, null, socket);
-            Debug.Log(Encoding.UTF8.GetString(UserManager.Instance.Decrypt(encryptBuf)));
-            while (!result.IsCompleted) { }
+            while (!result.IsCompleted) { Thread.Sleep(1); }
         }
         socket.Close();
     }
@@ -101,7 +102,6 @@ public class ServerSocket
         while ((len = socket.Receive(buf, buf.Length, 0)) > 0)
         {
             string path = Encoding.UTF8.GetString(buf, 0, len);
-            Debug.Log(path);
             path = Setting.defaultDirectory + path;
             DirectoryInfo dir = new DirectoryInfo(path);
             Debug.Log(dir.Parent.ToString());
@@ -110,11 +110,59 @@ public class ServerSocket
             }
             if (!File.Exists(path))
             {
-                File.Create(path);
+                File.Create(path).Dispose();
             }
         }
 
         socket.Close();
+    }
+
+    public void GetAllFile()
+    {
+        List<string> fileList = new List<string>();
+        fileList.Add(FileManager._bindDirectory);
+        while (fileList.Count != 0)
+        {
+            string path = fileList[0];
+            fileList.RemoveAt(0);
+            if (Directory.Exists(path))
+            {
+                DirectoryInfo di = new DirectoryInfo(path);
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    fileList.Add(dir.ToString());
+                }
+                foreach (FileInfo sub in di.GetFiles())
+                {
+                    fileList.Add(sub.ToString());
+                }
+            }
+
+            else if (File.Exists(path))
+            {
+                if (path.EndsWith(".meta"))
+                {
+                    continue;
+                }
+                string cloudMD5 = GetMD5(path);
+                string localMD5 = FileManager.GetFileMD5(path);
+                if (localMD5 != cloudMD5)
+                {
+                    Debug.Log("GetFile: " + path);
+                    GetFile(path);
+                }
+            }
+        }
+    }
+
+    public string GetMD5(string path)
+    {
+        Socket socket = GetSocket();
+        WriteUTF8("GetMD5", socket);
+        WriteUTF8(UserManager.Instance.userEncryptName, socket);
+        WriteUTF8(ChangeFilePath(path), socket);
+
+        return GetUTF8(socket);
     }
 
     public void GetFile(string filePath)
@@ -126,7 +174,7 @@ public class ServerSocket
 
 
         FileStream fwrite = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-        byte[] buf = new byte[1024];
+        byte[] buf = new byte[1040];
         int len;
         while ((len = socket.Receive(buf, buf.Length, 0)) > 0)
         {
@@ -142,9 +190,49 @@ public class ServerSocket
         socket.Close();
     }
 
+    public bool HasFile(string filePath)
+    {
+        Socket socket = GetSocket();
+        WriteUTF8("HasFile", socket);
+        WriteUTF8(UserManager.Instance.userEncryptName, socket);
+        WriteUTF8(ChangeFilePath(filePath), socket);
+        Debug.Log(ChangeFilePath(filePath));
+
+        int result = int.Parse(GetUTF8(socket)); 
+        socket.Close();
+        if (result == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void MkDir(string path)
+    {
+        Socket socket = GetSocket();
+        WriteUTF8("MkDir", socket);
+        WriteUTF8(UserManager.Instance.userEncryptName, socket);
+        WriteUTF8(ChangeFilePath(path), socket);
+        socket.Close();
+    }
+
+    public void DelFile(string path)
+    {
+        Socket socket = GetSocket();
+        WriteUTF8("DelFile", socket);
+        WriteUTF8(UserManager.Instance.userEncryptName, socket);
+        WriteUTF8(ChangeFilePath(path), socket);
+        socket.Close();
+    }
+
     public static string ChangeFilePath(string filePath)
     {
-        return filePath.Replace(Setting.defaultDirectory, "");
+        string rst = filePath.Replace(FileManager._bindDirectory, "");
+        if (rst == "") rst = "\\";
+        return rst;
     }
 
     private void ConnectCallback(IAsyncResult asyncResult)

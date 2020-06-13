@@ -29,6 +29,8 @@ public class BindDirectory : MonoBehaviour
         if (result == 0)
         {
             _bindDirectoryPanel.SetActive(false);
+            FileManager.Instance.Start();
+
             return;
         }
         else if (result == 1)

@@ -72,7 +72,7 @@ public class UserManager
         FileStream fread = new FileStream(sourcePath, FileMode.Open, FileAccess.Read);
         FileStream fwrite = new FileStream(targetPath, FileMode.Create, FileAccess.Write);
 
-        byte[] buf = new byte[1024];
+        byte[] buf = new byte[1040];
         int realLength;
         while ((realLength = fread.Read(buf, 0, buf.Length)) > 0)
         {
